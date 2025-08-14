@@ -1,0 +1,1505 @@
+
+Needs["Combinatorica`"]
+SetDirectory[NotebookDirectory[]]
+TableAll = 
+  Import["localization no-building \
+propagation=ThreeLogDistancePropagationLossModel grid=500X500 \
+n(UE)=200 n(eNB+FBS)=5 lbs=46 fbs=48 seed=1 run=4.csv", "Dataset", 
+   "HeaderLines" -> 1];
+TableAllNoDup = DeleteDuplicates[TableAll];
+
+
+
+
+
+RSRP1 = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP1 != 0 &]][
+    All, {"RSRP1"}]];
+RSRP1D = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP1 != 0 &]][
+    All, {"RSRP1", "UE-eNB1-Distance"}]];
+
+RSRP2 = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP2 != 0 &]][
+    All, {"RSRP2"}]];
+RSRP2D = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP2 != 0 &]][
+    All, {"RSRP2", "UE-eNB2-Distance"}]];
+
+RSRP3 = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP3 != 0 &]][
+    All, {"RSRP3"}]];
+RSRP3D = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP3 != 0 &]][
+    All, {"RSRP3", "UE-eNB3-Distance"}]];
+RSRP4 = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP4 != 0 &]][
+    All, {"RSRP4"}]];
+RSRP4D = Transpose[
+   TableAllNoDup[Select[#Time > 0.62 && #RSRP4 != 0 &]][
+    All, {"RSRP4", "UE-eNB4-Distance"}]];
+
+Smallest = TakeSmallest[RSRP1[[1]], 1]
+If[Smallest > TakeSmallest[RSRP2[[1]], 1],
+  Smallest = TakeSmallest[RSRP2[[1]], 1]];
+If[Smallest > TakeSmallest[RSRP3[[1]], 1],
+  Smallest = TakeSmallest[RSRP3[[1]], 1]];
+If[Smallest > TakeSmallest[RSRP4[[1]], 1],
+  Smallest = TakeSmallest[RSRP4[[1]], 1]];
+Largest = TakeLargest[RSRP1[[1]], 1];
+If[Largest < TakeLargest[RSRP2[[1]], 1],
+  Largest = TakeLargest[RSRP2[[1]], 1]];
+If[Largest < TakeLargest[RSRP3[[1]], 1],
+  Largest = TakeLargest[RSRP3[[1]], 1]];
+If[Largest < TakeLargest[RSRP4[[1]], 1],
+  Largest = TakeLargest[RSRP4[[1]], 1]];
+Largest
+
+DistList = {};
+For[i = 1, i < Largest[[1]] - Smallest[[1]] + 2,
+  AppendTo[DistList, {}];
+  i++;
+  ];
+Largest
+
+AverDist = {};
+For[i = 1, i < Largest[[1]] - Smallest[[1]] + 2,
+  RSRP1Dist = 
+   Transpose[
+    TableAllNoDup[
+      Select[#Time > 0.62 && #RSRP1 == Smallest[[1]] + i - 1 &]][
+     All, {"RSRP1", "UE-eNB1-Distance"}]];
+  RSRP2Dist = 
+   Transpose[
+    TableAllNoDup[
+      Select[#Time > 0.62 && #RSRP2 == Smallest[[1]] + i - 1 &]][
+     All, {"RSRP2", "UE-eNB2-Distance"}]];
+  RSRP3Dist = 
+   Transpose[
+    TableAllNoDup[
+      Select[#Time > 0.62 && #RSRP3 == Smallest[[1]] + i - 1 &]][
+     All, {"RSRP3", "UE-eNB3-Distance"}]];
+  RSRP4Dist = 
+   Transpose[
+    TableAllNoDup[
+      Select[#Time > 0.62 && #RSRP4 == Smallest[[1]] + i - 1 &]][
+     All, {"RSRP4", "UE-eNB4-Distance"}]];
+  For[j = 1, j < Length[RSRP1Dist[[1]]] + 1,
+   AppendTo[DistList[[i]], RSRP1Dist[[2]][[j]]];
+   j++;];
+  For[j = 1, j < Length[RSRP2Dist[[1]]] + 1,
+   AppendTo[DistList[[i]], RSRP2Dist[[2]][[j]]];
+   j++;];
+  For[j = 1, j < Length[RSRP3Dist[[1]]] + 1,
+   AppendTo[DistList[[i]], RSRP3Dist[[2]][[j]]];
+   j++;];
+  For[j = 1, j < Length[RSRP4Dist[[1]]] + 1,
+   AppendTo[DistList[[i]], RSRP4Dist[[2]][[j]]];
+   j++;];
+  i++;
+  ];
+
+AverDist = {};
+For[i = 1, i < Largest[[1]] - Smallest[[1]] + 2,
+  MeanTemp = Mean[DistList[[i]]];
+  AppendTo[AverDist, MeanTemp];
+  i++;
+  ];
+Largest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Loc = {};
+Locs = {};
+TableFil = 
+  TableAllNoDup[
+    Select[#Time > 0 && #Time < 0.62 && #RSRP1 > 
+        Smallest[[1]] - 1 && #RSRP2 > Smallest[[1]] - 1 && #RSRP3 > 
+        Smallest[[1]] - 1 && #RSRP4 > Smallest[[1]] - 1 && #RSRP5 != 
+        0 &]][All, {"Time", "IMSI", "UE-X", "UE-Y", "UE-Z", "RSRP5", 
+    "RSRP1", "UE-eNB1-Distance", "RSRP2", "UE-eNB2-Distance", "RSRP3",
+     "UE-eNB3-Distance", "RSRP4", "UE-eNB4-Distance", "X5", "Y5"}];
+TableFil4 = 
+  TableAllNoDup[
+    Select[#Time > 0 && #Time < 0.62 && #RSRP1 > 
+        Smallest[[1]] - 1 && #RSRP2 > Smallest[[1]] - 1 && #RSRP3 > 
+        Smallest[[1]] - 1 && #RSRP4 == 0 && #RSRP5 != 0 &]][
+   All, {"Time", "IMSI", "UE-X", "UE-Y", "UE-Z", "RSRP5", "RSRP1", 
+    "UE-eNB1-Distance", "RSRP2", "UE-eNB2-Distance", "RSRP3", 
+    "UE-eNB3-Distance", "RSRP4", "UE-eNB4-Distance", "X5", "Y5"}];
+TableFil3 = 
+  TableAllNoDup[
+    Select[#Time > 0 && #Time < 0.62 && #RSRP1 > 
+        Smallest[[1]] - 1 && #RSRP2 > Smallest[[1]] - 1 && #RSRP3 == 
+        0 && #RSRP4 > Smallest[[1]] - 1 && #RSRP5 != 0 &]][
+   All, {"Time", "IMSI", "UE-X", "UE-Y", "UE-Z", "RSRP5", "RSRP1", 
+    "UE-eNB1-Distance", "RSRP2", "UE-eNB2-Distance", "RSRP3", 
+    "UE-eNB3-Distance", "RSRP4", "UE-eNB4-Distance", "X5", "Y5"}];
+TableFil2 = 
+  TableAllNoDup[
+    Select[#Time > 0 && #Time < 0.62 && #RSRP1 > 
+        Smallest[[1]] - 1 && #RSRP2 == 0 && #RSRP3 > 
+        Smallest[[1]] - 1 && #RSRP4 > Smallest[[1]] - 1 && #RSRP5 != 
+        0 &]][All, {"Time", "IMSI", "UE-X", "UE-Y", "UE-Z", "RSRP5", 
+    "RSRP1", "UE-eNB1-Distance", "RSRP2", "UE-eNB2-Distance", "RSRP3",
+     "UE-eNB3-Distance", "RSRP4", "UE-eNB4-Distance", "X5", "Y5"}];
+TableFil1 = 
+  TableAllNoDup[
+    Select[#Time > 0 && #Time < 0.62 && #RSRP1 == 0 && #RSRP2 > 
+        Smallest[[1]] - 1 && #RSRP3 > Smallest[[1]] - 1 && #RSRP4 > 
+        Smallest[[1]] - 1 && #RSRP5 != 0 &]][
+   All, {"Time", "IMSI", "UE-X", "UE-Y", "UE-Z", "RSRP5", "RSRP1", 
+    "UE-eNB1-Distance", "RSRP2", "UE-eNB2-Distance", "RSRP3", 
+    "UE-eNB3-Distance", "RSRP4", "UE-eNB4-Distance", "X5", "Y5"}];
+TableFilT = Transpose[TableFil];
+TableFil1T = Transpose[TableFil1];
+TableFil2T = Transpose[TableFil2];
+TableFil3T = Transpose[TableFil3];
+TableFil4T = Transpose[TableFil4];
+
+DistanceTable = {{TableFilT[[7]][[1]], 
+    AverDist[[TableFilT[[7]][[1]] - Smallest[[1]] + 1]], 
+    TableFilT[[9]][[1]], 
+    AverDist[[TableFilT[[9]][[1]] - Smallest[[1]] + 1]], 
+    TableFilT[[11]][[1]], 
+    AverDist[[TableFilT[[11]][[1]] - Smallest[[1]] + 1]], 
+    TableFilT[[13]][[1]], 
+    AverDist[[TableFilT[[13]][[1]] - Smallest[[1]] + 1]]}};
+If[Length[TableFil1] > 0,
+  DistanceTable1 = {{0, 0, TableFil1T[[9]][[1]], 
+      AverDist[[TableFil1T[[9]][[1]] - Smallest[[1]] + 1]], 
+      TableFil1T[[11]][[1]], 
+      AverDist[[TableFil1T[[11]][[1]] - Smallest[[1]] + 1]], 
+      TableFil1T[[13]][[1]], 
+      AverDist[[TableFil1T[[13]][[1]] - Smallest[[1]] + 1]]}};
+  ];
+If[Length[TableFil2] > 0,
+  DistanceTable2 = {{TableFil2T[[7]][[1]], 
+      AverDist[[TableFil2T[[7]][[1]] - Smallest[[1]] + 1]], 0, 0, 
+      TableFil2T[[11]][[1]], 
+      AverDist[[TableFil2T[[11]][[1]] - Smallest[[1]] + 1]], 
+      TableFil2T[[13]][[1]], 
+      AverDist[[TableFil2T[[13]][[1]] - Smallest[[1]] + 1]]}};
+  ];
+If[Length[TableFil3] > 0,
+  DistanceTable3 = {{TableFil3T[[7]][[1]], 
+      AverDist[[TableFil3T[[7]][[1]] - Smallest[[1]] + 1]], 
+      TableFil3T[[9]][[1]], 
+      AverDist[[TableFil3T[[9]][[1]] - Smallest[[1]] + 1]], 0, 0, 
+      TableFil3T[[13]][[1]], 
+      AverDist[[TableFil3T[[13]][[1]] - Smallest[[1]] + 1]]}};
+  ];
+If[Length[TableFil4] > 0,
+  DistanceTable4 = {{TableFil4T[[7]][[1]], 
+      AverDist[[TableFil4T[[7]][[1]] - Smallest[[1]] + 1]], 
+      TableFil4T[[9]][[1]], 
+      AverDist[[TableFil4T[[9]][[1]] - Smallest[[1]] + 1]], 
+      TableFil4T[[11]][[1]], 
+      AverDist[[TableFil4T[[11]][[1]] - Smallest[[1]] + 1]], 0, 0}};
+  ];
+For[i = 2, i < Length[TableFilT[[1]]] + 1,
+  AppendTo[
+   DistanceTable, {TableFilT[[7]][[i]], 
+    AverDist[[TableFilT[[7]][[i]] - Smallest[[1]] + 1]], 
+    TableFilT[[9]][[i]], 
+    AverDist[[TableFilT[[9]][[i]] - Smallest[[1]] + 1]], 
+    TableFilT[[11]][[i]], 
+    AverDist[[TableFilT[[11]][[i]] - Smallest[[1]] + 1]], 
+    TableFilT[[13]][[i]], 
+    AverDist[[TableFilT[[13]][[i]] - Smallest[[1]] + 1]]}];
+  i++;
+  ];
+For[i = 2, i < Length[TableFil1T[[1]]] + 1,
+  AppendTo[
+   DistanceTable1, {0, 0, TableFil1T[[9]][[i]], 
+    AverDist[[TableFil1T[[9]][[i]] - Smallest[[1]] + 1]], 
+    TableFil1T[[11]][[i]], 
+    AverDist[[TableFil1T[[11]][[i]] - Smallest[[1]] + 1]], 
+    TableFil1T[[13]][[i]], 
+    AverDist[[TableFil1T[[13]][[i]] - Smallest[[1]] + 1]]}];
+  i++;
+  ];
+For[i = 2, i < Length[TableFil2T[[1]]] + 1,
+  AppendTo[
+   DistanceTable2, {TableFil2T[[7]][[i]], 
+    AverDist[[TableFil2T[[7]][[i]] - Smallest[[1]] + 1]], 0, 0, 
+    TableFil2T[[11]][[i]], 
+    AverDist[[TableFil2T[[11]][[i]] - Smallest[[1]] + 1]], 
+    TableFil2T[[13]][[i]], 
+    AverDist[[TableFil2T[[13]][[i]] - Smallest[[1]] + 1]]}];
+  i++;
+  ];
+For[i = 2, i < Length[TableFil3T[[1]]] + 1,
+  AppendTo[
+   DistanceTable3, {TableFil3T[[7]][[i]], 
+    AverDist[[TableFil3T[[7]][[i]] - Smallest[[1]] + 1]], 
+    TableFil3T[[9]][[i]], 
+    AverDist[[TableFil3T[[9]][[i]] - Smallest[[1]] + 1]], 0, 0, 
+    TableFil3T[[13]][[i]], 
+    AverDist[[TableFil3T[[13]][[i]] - Smallest[[1]] + 1]]}];
+  i++;
+  ];
+For[i = 2, i < Length[TableFil4T[[1]]] + 1,
+  AppendTo[
+   DistanceTable4, {TableFil4T[[7]][[i]], 
+    AverDist[[TableFil4T[[7]][[i]] - Smallest[[1]] + 1]], 
+    TableFil4T[[9]][[i]], 
+    AverDist[[TableFil4T[[9]][[i]] - Smallest[[1]] + 1]], 
+    TableFil4T[[11]][[i]], 
+    AverDist[[TableFil4T[[11]][[i]] - Smallest[[1]] + 1]], 0, 0}];
+  i++;
+  ];
+eNBLoc = Transpose[
+   DeleteDuplicates[
+    TableAllNoDup[Select[#Time > 0.3 &]][
+     All, {"X1", "Y1", "Z1", "X2", "Y2", "Z2", "X3", "Y3", "Z3", "X4",
+       "Y4", "Z4"}]]];
+For[i = 1, i < Length[TableFilT[[1]]] + 1,
+  AppendTo[Loc, {}];
+  AppendTo[Locs, {}];
+  
+  
+  
+  
+  
+  Locs[[i]] = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable[[i]][[2 k]])^2, {k, 1, 4}], {{x, 250}, {y, 
+      250}}];
+  Loc[[i]] = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable[[i]][[2 k]])^2, {k, 1, 4}], {{x, 
+      Locs[[i]][[1]] + 10}, {y, Locs[[i]][[1]] - 10}}];
+  
+  (** Sum(D_i(x,y) -d_i)^2      D_i comes (x,y), d_i fittedModel/
+  equasion **)
+  
+  (**Loc[[i]]={x,y}/.Last[FindMinimum[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[
+  1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable[[i]][[2k]])^2,{k,1,4}],{{x,250},{y,250}}]];**)
+  i++;
+  ];
+For[i = 1, i < Length[TableFil1T[[1]]] + 1,
+  AppendTo[Loc, {}];
+  AppendTo[Locs, {}];
+  
+  TempLoc2 = {0, 0};
+  
+  TempLoc1 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}], {{x, 
+      250}, {y, 250}}];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}], {{x, 50}, {y,
+       50}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}], {{x, 
+      450}, {y, 0}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}], {{x, 0}, {y, 
+      450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}], {{x, 
+      450}, {y, 450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable1[[i]][[2 k]])^2, {k, {2, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  
+  Loc[[i + Length[TableFilT[[1]]]]] = TempLoc1;
+  
+  (** Locs[[i+Length[TableFilT[[1]]]]]=FindArgMin[Sum[(Sqrt[(x-
+  eNBLoc[[3k-2]][[1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[
+  1]])^2]-DistanceTable1[[i]][[2k]])^2,{k,{2,3,4}}],{{x,eNBLoc[[10]][[
+  1]]},{y,eNBLoc[[11]][[1]]}}];
+  Loc[[i+Length[TableFilT[[1]]]]]=FindArgMin[Sum[(Sqrt[(x-eNBLoc[[
+  3k-2]][[1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable1[[i]][[2k]])^2,{k,{2,3,4}}],{{x,Locs[[i]][[1]]+10},{y,
+  Locs[[i]][[1]]-10}}];
+  
+  Sum(D_i(x,y) -d_i)^2      D_i comes (x,y), d_i fittedModel/
+  equasion **)
+  
+  (**Loc[[i]]={x,y}/.Last[FindMinimum[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[
+  1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable[[i]][[2k]])^2,{k,1,4}],{{x,250},{y,250}}]];**)
+  i++;
+  ];
+For[i = 1, i < Length[TableFil2T[[1]]] + 1,
+  AppendTo[Loc, {}];
+  AppendTo[Locs, {}];
+  
+  TempLoc2 = {0, 0};
+  
+  TempLoc1 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}], {{x, 
+      250}, {y, 250}}];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}], {{x, 50}, {y,
+       50}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}], {{x, 
+      450}, {y, 0}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}], {{x, 0}, {y, 
+      450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}], {{x, 
+      450}, {y, 450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable2[[i]][[2 k]])^2, {k, {1, 3, 4}}],
+   TempLoc1 = TempLoc2];
+  
+  Loc[[i + Length[TableFilT[[1]]] + Length[TableFil1T[[1]]]]] = 
+   TempLoc1;
+  
+  
+  
+  (**Loc[[i+Length[TableFilT[[1]]]+Length[TableFil1T[[1]]]]]=
+  FindArgMin[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[1]])^2+(y-eNBLoc[[3k-1]][[
+  1]])^2+(2-eNBLoc[[3k]][[1]])^2]-DistanceTable2[[i]][[2k]])^2,{k,{1,
+  3,4}}],{{x,Locs[[i+Length[TableFilT[[1]]]+Length[TableFil1T[[
+  1]]]]][[1]]+10},{y,Locs[[i+Length[TableFilT[[1]]]+Length[
+  TableFil1T[[1]]]]][[1]]-10}}];
+  
+   Sum(D_i(x,y) -d_i)^2      D_i comes (x,y), d_i fittedModel/
+  equasion **)
+  
+  (**Loc[[i]]={x,y}/.Last[FindMinimum[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[
+  1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable[[i]][[2k]])^2,{k,1,4}],{{x,250},{y,250}}]];**)
+  i++;
+  ];
+For[i = 1, i < Length[TableFil3T[[1]]] + 1,
+  AppendTo[Loc, {}];
+  AppendTo[Locs, {}];
+  
+  TempLoc2 = {0, 0};
+  
+  TempLoc1 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}], {{x, 
+      250}, {y, 250}}];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}], {{x, 50}, {y,
+       50}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}], {{x, 
+      450}, {y, 0}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}], {{x, 0}, {y, 
+      450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}], {{x, 
+      450}, {y, 450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable3[[i]][[2 k]])^2, {k, {1, 2, 4}}],
+   TempLoc1 = TempLoc2];
+  
+  Loc[[i + Length[TableFilT[[1]]] + Length[TableFil1T[[1]]] + 
+     Length[TableFil2T[[1]]]]] = TempLoc1;
+  
+  
+  
+  
+  (**Loc[[i+Length[TableFilT[[1]]]+Length[TableFil1T[[1]]]+Length[
+  TableFil2T[[1]]]]]=FindArgMin[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[
+  1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable3[[i]][[2k]])^2,{k,{1,2,4}}],{{x,Locs[[i+Length[
+  TableFilT[[1]]]+Length[TableFil1T[[1]]]+Length[TableFil2T[[1]]]]][[
+  1]]+10},{y,Locs[[i+Length[TableFilT[[1]]]+Length[TableFil1T[[1]]]+
+  Length[TableFil2T[[1]]]]][[1]]-10}}];
+  
+   Sum(D_i(x,y) -d_i)^2      D_i comes (x,y), d_i fittedModel/
+  equasion **)
+  
+  (**Loc[[i]]={x,y}/.Last[FindMinimum[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[
+  1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable[[i]][[2k]])^2,{k,1,4}],{{x,250},{y,250}}]];**)
+  i++;
+  ];
+For[i = 1, i < Length[TableFil4T[[1]]] + 1,
+  AppendTo[Loc, {}];
+  AppendTo[Locs, {}];
+  
+  TempLoc2 = {0, 0};
+  
+  TempLoc1 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}], {{x, 
+      250}, {y, 250}}];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}], {{x, 50}, {y,
+       50}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}], {{x, 
+      450}, {y, 0}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}], {{x, 0}, {y, 
+      450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}],
+   TempLoc1 = TempLoc2];
+  TempLoc2 = 
+   FindArgMin[
+    Sum[(Sqrt[(x - eNBLoc[[3 k - 2]][[1]])^2 + (y - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}], {{x, 
+      450}, {y, 450}}];
+  If[Sum[(Sqrt[(TempLoc1[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc1[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}] > 
+    Sum[(Sqrt[(TempLoc2[[1]] - 
+             eNBLoc[[3 k - 2]][[1]])^2 + (TempLoc2[[2]] - 
+             eNBLoc[[3 k - 1]][[1]])^2 + (2 - eNBLoc[[3 k]][[1]])^2] -
+         DistanceTable4[[i]][[2 k]])^2, {k, {1, 2, 3}}],
+   TempLoc1 = TempLoc2];
+  
+  Loc[[i + Length[TableFilT[[1]]] + Length[TableFil1T[[1]]] + 
+     Length[TableFil2T[[1]]] + Length[TableFil3T[[1]]]]] = TempLoc1;
+  (**Loc[[i+Length[TableFilT[[1]]]+Length[TableFil1T[[1]]]+Length[
+  TableFil2T[[1]]]+Length[TableFil3T[[1]]]]]=FindArgMin[Sum[(Sqrt[(x-
+  eNBLoc[[3k-2]][[1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[
+  1]])^2]-DistanceTable4[[i]][[2k]])^2,{k,{1,2,3}}],{{x,Locs[[i+
+  Length[TableFilT[[1]]]+Length[TableFil1T[[1]]]+Length[TableFil2T[[
+  1]]]+Length[TableFil3T[[1]]]]][[1]]+10},{y,Locs[[i+Length[
+  TableFilT[[1]]]+Length[TableFil1T[[1]]]+Length[TableFil2T[[1]]]+
+  Length[TableFil3T[[1]]]]][[1]]-10}}];
+  
+   Sum(D_i(x,y) -d_i)^2      D_i comes (x,y), d_i fittedModel/
+  equasion **)
+  
+  (**Loc[[i]]={x,y}/.Last[FindMinimum[Sum[(Sqrt[(x-eNBLoc[[3k-2]][[
+  1]])^2+(y-eNBLoc[[3k-1]][[1]])^2+(2-eNBLoc[[3k]][[1]])^2]-
+  DistanceTable[[i]][[2k]])^2,{k,1,4}],{{x,250},{y,250}}]];**)
+  i++;
+  ];
+(**Warning messages below seem to be ok**)
+FBS04 = TableAllNoDup[Select[#Time == 0.400001 &]][All, {"X5", "Y5"}];
+FBS = {FBS04[[1]][[1]], FBS04[[1]][[2]]};
+grids[min_, max_] := 
+  Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}];
+Show[
+  (**ListDensityPlot[HeatMap,PlotLegends\[Rule]Automatic],**)
+  ListPlot[{{0, 0}, {500, 0}, {500, 500}, {0, 500}}, 
+   GridLines -> grids, ImageSize -> Large, AspectRatio -> 1, 
+   PlotStyle -> Black],
+  ListPlot[Loc],
+  ListPlot[{FBS}, PlotStyle -> Red]
+  (**,
+  ListPlot[{{Gridsize*(M1-1),Gridsize*(M2-1)}},
+  PlotStyle\[Rule]Black]**)
+  (**ListPlot[{Gridsize*({Position[ROI,Max[ROI]][[All,1]]}-1)},
+  PlotStyle\[Rule]Black]**)
+  ];
+Length[Loc]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ROI = {};
+ScaleP = 100;
+Score = 100;
+Size = 500;
+FBS04 = TableAllNoDup[Select[#Time == 0.400001 &]][All, {"X5", "Y5"}];
+FBS = {FBS04[[1]][[1]], FBS04[[1]][[2]]}
+Gridsize = Size/ScaleP;
+HeatMap = {};
+UEsignal = {};
+NumberUE = Length[Loc];
+UEall = {};
+UEnoSig = {};
+UEsignal2 = {};
+UEnoSig2 = {};
+UEall2 = {};
+PolarLoc = {};
+(**Polar presentation for random sectors**)
+BLUEsignal = {};
+BLNumberUE = Length[Loc];
+BLUEall = {};
+BLUEnoSig = {};
+BLUEsignal2 = {};
+BLUEnoSig2 = {};
+BLUEall2 = {};
+BLPolarLoc = {};
+For[j = 1, j < Length[TableFilT[[1]]] + 1,
+  AppendTo[BLPolarLoc, 
+   ToPolarCoordinates[{TableFilT[[3]][[j]] - TableFilT[[15]][[j]], 
+     TableFilT[[4]][[j]] - TableFilT[[16]][[j]]}]];
+  
+  j++;
+  ];
+For[j = 1, j < Length[TableFil1T[[1]]] + 1,
+  AppendTo[BLPolarLoc, 
+   ToPolarCoordinates[{TableFil1T[[3]][[j]] - TableFil1T[[15]][[j]], 
+     TableFil1T[[4]][[j]] - TableFil1T[[16]][[j]]}]];
+  
+  j++;
+  ];
+For[j = 1, j < Length[TableFil2T[[1]]] + 1,
+  AppendTo[BLPolarLoc, 
+   ToPolarCoordinates[{TableFil2T[[3]][[j]] - TableFil2T[[15]][[j]], 
+     TableFil2T[[4]][[j]] - TableFil2T[[16]][[j]]}]];
+  
+  j++;
+  ];
+For[j = 1, j < Length[TableFil3T[[1]]] + 1,
+  AppendTo[BLPolarLoc, 
+   ToPolarCoordinates[{TableFil3T[[3]][[j]] - TableFil3T[[15]][[j]], 
+     TableFil3T[[4]][[j]] - TableFil3T[[16]][[j]]}]];
+  
+  j++;
+  ];
+For[j = 1, j < Length[TableFil4T[[1]]] + 1,
+  AppendTo[BLPolarLoc, 
+   ToPolarCoordinates[{TableFil4T[[3]][[j]] - TableFil4T[[15]][[j]], 
+     TableFil4T[[4]][[j]] - TableFil4T[[16]][[j]]}]];
+  
+  j++;
+  ];
+
+BLSectorAnchor = RandomReal[{-Pi, -Pi/3}]
+j = 0;
+(**Bot left 120Deg**)
+For[i = 1, i < Length[TableFilT[[1]]] + 1,
+  j++;
+  If[BLPolarLoc[[j]][[2]] > BLSectorAnchor && 
+    BLPolarLoc[[j]][[2]] < BLSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BLUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFilT[[6]][[i]]}];
+   AppendTo[BLUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BLUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BLUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil1T[[1]]] + 1,
+  j++;
+  If[BLPolarLoc[[j]][[2]] > BLSectorAnchor && 
+    BLPolarLoc[[j]][[2]] < BLSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BLUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil1T[[6]][[i]]}];
+   AppendTo[BLUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BLUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BLUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil2T[[1]]] + 1,
+  j++;
+  If[BLPolarLoc[[j]][[2]] > BLSectorAnchor && 
+    BLPolarLoc[[j]][[2]] < BLSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BLUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil2T[[6]][[i]]}];
+   AppendTo[BLUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BLUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BLUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil3T[[1]]] + 1,
+  j++;
+  If[BLPolarLoc[[j]][[2]] > BLSectorAnchor && 
+    BLPolarLoc[[j]][[2]] < BLSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BLUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil3T[[6]][[i]]}];
+   AppendTo[BLUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BLUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BLUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil4T[[1]]] + 1,
+  j++;
+  If[BLPolarLoc[[j]][[2]] > BLSectorAnchor && 
+    BLPolarLoc[[j]][[2]] < BLSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BLUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil4T[[6]][[i]]}];
+   AppendTo[BLUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BLUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BLUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+For[j = 1, j < Length[UEnoSig] + 1,
+  AppendTo[
+   BLUEall, {BLUEnoSig[[j]][[1]], BLUEnoSig[[j]][[2]], 
+    BLUEnoSig[[j]][[3]]}];
+  AppendTo[BLUEall2, {BLUEnoSig2[[j]][[1]], BLUEnoSig2[[j]][[2]]}];
+  j++;
+  ];
+For[j = 1, j < Length[BLUEsignal] + 1,
+  AppendTo[
+   BLUEall, {BLUEsignal[[j]][[1]], BLUEsignal[[j]][[2]], 
+    BLUEsignal[[j]][[3]]}];
+  AppendTo[BLUEall2, {BLUEsignal2[[j]][[1]], BLUEsignal2[[j]][[2]]}];
+  j++;
+  ];
+grids[min_, max_] := 
+ Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}]
+Show[
+ (**ListDensityPlot[HeatMap,PlotLegends\[Rule]Automatic],**)
+ ListPlot[{{0, 0}, {500, 0}, {500, 500}, {0, 500}}, 
+  GridLines -> grids, ImageSize -> Large, AspectRatio -> 1, 
+  PlotStyle -> Black],
+ ListPlot[BLUEnoSig2],
+ ListPlot[BLUEsignal2, PlotStyle -> Green],
+ ListPlot[{FBS}, PlotStyle -> Red]
+ (**,
+ ListPlot[{{Gridsize*(M1-1),Gridsize*(M2-1)}},PlotStyle\[Rule]Black]**)
+\
+
+ (**ListPlot[{Gridsize*({Position[ROI,Max[ROI]][[All,1]]}-1)},\
+PlotStyle\[Rule]Black]**)
+ ]
+
+
+
+
+
+
+BRUEsignal = {};
+BRNumberUE = Length[Loc];
+BRUEall = {};
+BRUEnoSig = {};
+BRUEsignal2 = {};
+BRUEnoSig2 = {};
+BRUEall2 = {};
+BRPolarLoc = {};
+For[j = 1, j < Length[TableFilT[[1]]] + 1,
+  AppendTo[BRPolarLoc, 
+   ToPolarCoordinates[{TableFilT[[3]][[j]] - TableFilT[[15]][[j]], 
+     TableFilT[[4]][[j]] - TableFilT[[16]][[j]]}]];
+  
+  j++;
+  ];
+Length[BRPolarLoc]
+For[j = 1, j < Length[TableFil1T[[1]]] + 1,
+  AppendTo[BRPolarLoc, 
+   ToPolarCoordinates[{TableFil1T[[3]][[j]] - TableFil1T[[15]][[j]], 
+     TableFil1T[[4]][[j]] - TableFil1T[[16]][[j]]}]];
+  
+  j++;
+  ];
+Length[BRPolarLoc]
+For[j = 1, j < Length[TableFil2T[[1]]] + 1,
+  AppendTo[BRPolarLoc, 
+   ToPolarCoordinates[{TableFil2T[[3]][[j]] - TableFil2T[[15]][[j]], 
+     TableFil2T[[4]][[j]] - TableFil2T[[16]][[j]]}]];
+  
+  j++;
+  ];
+Length[BRPolarLoc]
+For[j = 1, j < Length[TableFil3T[[1]]] + 1,
+  AppendTo[BRPolarLoc, 
+   ToPolarCoordinates[{TableFil3T[[3]][[j]] - TableFil3T[[15]][[j]], 
+     TableFil3T[[4]][[j]] - TableFil3T[[16]][[j]]}]];
+  
+  j++;
+  ];
+Length[BRPolarLoc]
+For[j = 1, j < Length[TableFil4T[[1]]] + 1,
+  AppendTo[BRPolarLoc, 
+   ToPolarCoordinates[{TableFil4T[[3]][[j]] - TableFil4T[[15]][[j]], 
+     TableFil4T[[4]][[j]] - TableFil4T[[16]][[j]]}]];
+  
+  j++;
+  ];
+Length[BRPolarLoc]
+
+
+
+
+
+
+
+BRSectorAnchor = BLSectorAnchor + 2 Pi/3;
+
+
+j = 0;
+(**Bot right 120Deg**)
+For[i = 1, i < Length[TableFilT[[1]]] + 1,
+  j++;
+  If[BRPolarLoc[[j]][[2]] > BRSectorAnchor && 
+    BRPolarLoc[[j]][[2]] < BRSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFilT[[6]][[i]]}];
+   AppendTo[BRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil1T[[1]]] + 1,
+  j++;
+  If[BRPolarLoc[[j]][[2]] > BRSectorAnchor && 
+    BRPolarLoc[[j]][[2]] < BRSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil1T[[6]][[i]]}];
+   AppendTo[BRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil2T[[1]]] + 1,
+  j++;
+  If[BRPolarLoc[[j]][[2]] > BRSectorAnchor && 
+    BRPolarLoc[[j]][[2]] < BRSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil2T[[6]][[i]]}];
+   AppendTo[BRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil3T[[1]]] + 1,
+  j++;
+  If[BRPolarLoc[[j]][[2]] > BRSectorAnchor && 
+    BRPolarLoc[[j]][[2]] < BRSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil3T[[6]][[i]]}];
+   AppendTo[BRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+For[i = 1, i < Length[TableFil4T[[1]]] + 1,
+  j++;
+  If[BRPolarLoc[[j]][[2]] > BRSectorAnchor && 
+    BRPolarLoc[[j]][[2]] < BRSectorAnchor + 2 Pi/3,
+   AppendTo[
+    BRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil4T[[6]][[i]]}];
+   AppendTo[BRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[BRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[BRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+
+For[j = 1, j < Length[BRUEnoSig] + 1,
+  AppendTo[
+   BRUEall, {BRUEnoSig[[j]][[1]], BRUEnoSig[[j]][[2]], 
+    BRUEnoSig[[j]][[3]]}];
+  AppendTo[BRUEall2, {BRUEnoSig2[[j]][[1]], BRUEnoSig2[[j]][[2]]}];
+  j++;
+  ];
+For[j = 1, j < Length[BRUEsignal] + 1,
+  AppendTo[
+   BRUEall, {BRUEsignal[[j]][[1]], BRUEsignal[[j]][[2]], 
+    BRUEsignal[[j]][[3]]}];
+  AppendTo[BRUEall2, {BRUEsignal2[[j]][[1]], BRUEsignal2[[j]][[2]]}];
+  j++;
+  ];
+
+grids[min_, max_] := 
+ Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}]
+Show[
+ (**ListDensityPlot[HeatMap,PlotLegends\[Rule]Automatic],**)
+ ListPlot[{{0, 0}, {500, 0}, {500, 500}, {0, 500}}, 
+  GridLines -> grids, ImageSize -> Large, AspectRatio -> 1, 
+  PlotStyle -> Black],
+ ListPlot[BRUEnoSig2],
+ ListPlot[BRUEsignal2, PlotStyle -> Green],
+ ListPlot[{FBS}, PlotStyle -> Red]
+ (**,
+ ListPlot[{{Gridsize*(M1-1),Gridsize*(M2-1)}},PlotStyle\[Rule]Black]**)
+\
+
+ (**ListPlot[{Gridsize*({Position[ROI,Max[ROI]][[All,1]]}-1)},\
+PlotStyle\[Rule]Black]**)
+ ]
+
+
+
+
+
+TRUEsignal = {};
+TRNumberUE = Length[TableFilT[[1]]];
+TRUEall = {};
+TRUEnoSig = {};
+TRUEsignal2 = {};
+TRUEnoSig2 = {};
+TRUEall2 = {};
+TRPolarLoc = {};
+TRPolarLoc = BLPolarLoc;
+TRSectorAnchor = BRSectorAnchor + 2 Pi/3;
+
+(**Top right 120Deg
+For[j=1,j<NumberUE+1,
+If[TRPolarLoc[[j]][[2]]>TRSectorAnchor||TRPolarLoc[[j]][[2]]<\
+BLSectorAnchor,
+AppendTo[TRUEsignal,{Loc[[j]][[1]],Loc[[j]][[2]],TableFilT[[6]][[j]]}];
+AppendTo[TRUEsignal2,{Loc[[j]][[1]],Loc[[j]][[2]]}];
+,
+AppendTo[TRUEnoSig,{Loc[[j]][[1]],Loc[[j]][[2]],0}];
+AppendTo[TRUEnoSig2,{Loc[[j]][[1]],Loc[[j]][[2]]}];
+];
+j++;
+];
+
+**)
+
+
+
+
+
+
+
+j = 0;
+(**Bot right 120Deg**)
+For[i = 1, i < Length[TableFilT[[1]]] + 1,
+  j++;
+  If[TRPolarLoc[[j]][[2]] > TRSectorAnchor || 
+    TRPolarLoc[[j]][[2]] < BLSectorAnchor,
+   AppendTo[
+    TRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFilT[[6]][[i]]}];
+   AppendTo[TRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[TRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[TRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+
+
+
+
+
+
+
+
+For[i = 1, i < Length[TableFil1T[[1]]] + 1,
+  j++;
+  If[TRPolarLoc[[j]][[2]] > TRSectorAnchor || 
+    TRPolarLoc[[j]][[2]] < BLSectorAnchor,
+   AppendTo[
+    TRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil1T[[6]][[i]]}];
+   AppendTo[TRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[TRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[TRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+
+
+
+
+
+
+
+
+
+For[i = 1, i < Length[TableFil2T[[1]]] + 1,
+  j++;
+  If[TRPolarLoc[[j]][[2]] > TRSectorAnchor || 
+    TRPolarLoc[[j]][[2]] < BLSectorAnchor,
+   AppendTo[
+    TRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil2T[[6]][[i]]}];
+   AppendTo[TRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[TRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[TRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+
+
+
+
+
+
+
+
+For[i = 1, i < Length[TableFil3T[[1]]] + 1,
+  j++;
+  If[TRPolarLoc[[j]][[2]] > TRSectorAnchor || 
+    TRPolarLoc[[j]][[2]] < BLSectorAnchor,
+   AppendTo[
+    TRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil3T[[6]][[i]]}];
+   AppendTo[TRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[TRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[TRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+
+
+
+
+
+
+For[i = 1, i < Length[TableFil4T[[1]]] + 1,
+  j++;
+  If[TRPolarLoc[[j]][[2]] > TRSectorAnchor || 
+    TRPolarLoc[[j]][[2]] < BLSectorAnchor,
+   AppendTo[
+    TRUEsignal, {Loc[[j]][[1]], Loc[[j]][[2]], TableFil4T[[6]][[i]]}];
+   AppendTo[TRUEsignal2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ,
+   AppendTo[TRUEnoSig, {Loc[[j]][[1]], Loc[[j]][[2]], 0}];
+   AppendTo[TRUEnoSig2, {Loc[[j]][[1]], Loc[[j]][[2]]}];
+   ];
+  i++;
+  ];
+
+
+
+
+
+
+
+
+For[j = 1, j < Length[TRUEnoSig] + 1,
+  AppendTo[
+   TRUEall, {TRUEnoSig[[j]][[1]], TRUEnoSig[[j]][[2]], 
+    TRUEnoSig[[j]][[3]]}];
+  AppendTo[TRUEall2, {TRUEnoSig2[[j]][[1]], TRUEnoSig2[[j]][[2]]}];
+  j++;
+  ];
+For[j = 1, j < Length[TRUEsignal] + 1,
+  AppendTo[
+   TRUEall, {TRUEsignal[[j]][[1]], TRUEsignal[[j]][[2]], 
+    TRUEsignal[[j]][[3]]}];
+  AppendTo[TRUEall2, {TRUEsignal2[[j]][[1]], TRUEsignal2[[j]][[2]]}];
+  j++;
+  ];
+grids[min_, max_] := 
+ Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}]
+Show[
+ (**ListDensityPlot[HeatMap,PlotLegends\[Rule]Automatic],**)
+ ListPlot[{{0, 0}, {500, 0}, {500, 500}, {0, 500}}, 
+  GridLines -> grids, ImageSize -> Large, AspectRatio -> 1, 
+  PlotStyle -> Black],
+ ListPlot[TRUEnoSig2],
+ ListPlot[TRUEsignal2, PlotStyle -> Green],
+ ListPlot[{FBS}, PlotStyle -> Red]
+ (**,
+ ListPlot[{{Gridsize*(M1-1),Gridsize*(M2-1)}},PlotStyle\[Rule]Black]**)
+\
+
+ (**ListPlot[{Gridsize*({Position[ROI,Max[ROI]][[All,1]]}-1)},\
+PlotStyle\[Rule]Black]**)
+ ]
+
+
+
+
+
+
+
+
+(**ang radian FBS Bot Left**)
+ROIang120BL = {};
+(**ang=Pi/3;
+Half=HalfPlane[{FBS,{FBS[[1]]+Cos[3Pi/2-ang],FBS[[2]]-Sin[Pi/2-ang]}},\
+{0,-1}];
+LeftP=HalfPlane[{FBS,{FBS[[1]],FBS[[2]]-1}},{-1,0}];**)
+ScaleP = 100;
+Score = 0;
+Size = 500;
+Gridsize = Size/ScaleP;
+HeatMapang120BL = {};
+
+For[j = 1, j < ScaleP + 1,
+  AppendTo[ROIang120BL, {}];
+  j++;
+  ];
+For[j = 1, j < ScaleP + 1,
+  For[i = 1, i < ScaleP + 1,
+   AppendTo[ROIang120BL[[j]], Score];
+   AppendTo[
+    HeatMapang120BL, {(j - 1)*Gridsize, (i - 1)*Gridsize, Score}];
+   i++;
+   ];
+  j++;
+  ];
+For[j = 1, j < Length[BLUEsignal],
+  For[i = j + 1, i < Length[BLUEsignal] + 1,
+   a = BLUEsignal[[j]][[3]];
+   b = BLUEsignal[[i]][[3]];
+   If[a != b,
+    For[k = 1, k < ScaleP + 1,
+      For[h = 1, h < ScaleP + 1,
+       x = (k - 1)*Gridsize;
+       y = (h - 1)*Gridsize;
+       D1 = 
+        EuclideanDistance[{x, y}, {BLUEsignal[[j]][[1]], 
+          BLUEsignal[[j]][[2]]}];
+       D2 = 
+        EuclideanDistance[{x, y}, {BLUEsignal[[i]][[1]], 
+          BLUEsignal[[i]][[2]]}];
+       If[a > b && D1 > D2,
+        ROIang120BL[[k]][[h]] = ROIang120BL[[k]][[h]] + 1;
+        ];
+       If[a < b && D1 < D2,
+        ROIang120BL[[k]][[h]] = ROIang120BL[[k]][[h]] + 1;
+        ];
+       h++;
+       ];
+      k++;
+      ];
+    ];
+   i++;
+   ];
+  j++;
+  ];
+For[j = 1, j < ScaleP + 1,
+  For[i = 1, i < ScaleP + 1,
+   HeatMapang120BL[[i + ScaleP (j - 1)]][[3]] = ROIang120BL[[j]][[i]];
+   i++;
+   ];
+  j++;
+  ];
+M1s = Position[ROIang120BL, Min[ROIang120BL]][[1]][[1]];
+M2s = Position[ROIang120BL, Min[ROIang120BL]][[1]][[2]];
+ang = Pi/3;
+LeftP120BL = 
+ HalfPlane[{FBS, {FBS[[1]] + Cos[BLSectorAnchor - ang], 
+    FBS[[2]] + Sin[BLSectorAnchor - ang]}}, {Cos[
+    BLSectorAnchor - ang/2], Sin[BLSectorAnchor - ang/2]}]
+Half120BL = 
+  HalfPlane[{FBS, {FBS[[1]] + Cos[BLSectorAnchor], 
+     FBS[[2]] + Sin[BLSectorAnchor]}}, {Cos[BLSectorAnchor + ang/2], 
+    Sin[BLSectorAnchor + ang/2]}];
+grids[min_, max_] := 
+ Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}]
+Show[
+ ListDensityPlot[HeatMapang120BL, PlotLegends -> Automatic],
+ ListPlot[BLUEsignal2, GridLines -> grids, ImageSize -> Large, 
+  AspectRatio -> 1],
+ ListPlot[BLUEnoSig2, PlotStyle -> Green],
+ ListPlot[{FBS}, PlotStyle -> Red],
+ ListPlot[{Gridsize*(Position[ROIang120BL, Min[ROIang120BL]] - 1)}, 
+  PlotStyle -> Black],
+ RegionPlot[RegionIntersection[Half120BL, LeftP120BL], 
+  PlotRange -> {{0, 500}, {0, 500}}, PlotStyle -> {Blue, Opacity[0.2]}]
+ ]
+
+
+(**ang radian FBS Bot Right**)
+ROIang120BR = {};
+(**ang=Pi/3;
+Half=HalfPlane[{FBS,{FBS[[1]]+Cos[3Pi/2-ang],FBS[[2]]-Sin[Pi/2-ang]}},\
+{0,-1}];
+LeftP=HalfPlane[{FBS,{FBS[[1]],FBS[[2]]-1}},{-1,0}];**)
+ScaleP = 100;
+Score = 0;
+Size = 500;
+Gridsize = Size/ScaleP;
+HeatMapang120BR = {};
+
+For[j = 1, j < ScaleP + 1,
+  AppendTo[ROIang120BR, {}];
+  j++;
+  ];
+For[j = 1, j < ScaleP + 1,
+  For[i = 1, i < ScaleP + 1,
+   AppendTo[ROIang120BR[[j]], Score];
+   AppendTo[
+    HeatMapang120BR, {(j - 1)*Gridsize, (i - 1)*Gridsize, Score}];
+   i++;
+   ];
+  j++;
+  ];
+For[j = 1, j < Length[BRUEsignal],
+  For[i = j + 1, i < Length[BRUEsignal] + 1,
+   a = BRUEsignal[[j]][[3]];
+   b = BRUEsignal[[i]][[3]];
+   If[a != b,
+    For[k = 1, k < ScaleP + 1,
+      For[h = 1, h < ScaleP + 1,
+       x = (k - 1)*Gridsize;
+       y = (h - 1)*Gridsize;
+       D1 = 
+        EuclideanDistance[{x, y}, {BRUEsignal[[j]][[1]], 
+          BRUEsignal[[j]][[2]]}];
+       D2 = 
+        EuclideanDistance[{x, y}, {BRUEsignal[[i]][[1]], 
+          BRUEsignal[[i]][[2]]}];
+       If[a > b && D1 > D2,
+        ROIang120BR[[k]][[h]] = ROIang120BR[[k]][[h]] + 1;
+        ];
+       If[a < b && D1 < D2,
+        ROIang120BR[[k]][[h]] = ROIang120BR[[k]][[h]] + 1;
+        ];
+       h++;
+       ];
+      k++;
+      ];
+    ];
+   i++;
+   ];
+  j++;
+  ];
+For[j = 1, j < ScaleP + 1,
+  For[i = 1, i < ScaleP + 1,
+   HeatMapang120BR[[i + ScaleP (j - 1)]][[3]] = ROIang120BR[[j]][[i]];
+   i++;
+   ];
+  j++;
+  ];
+M1s = Position[ROIang120BR, Min[ROIang120BR]][[1]][[1]];
+M2s = Position[ROIang120BR, Min[ROIang120BR]][[1]][[2]];
+ang = Pi/3;
+LeftP120BR = 
+ HalfPlane[{FBS, {FBS[[1]] + Cos[BRSectorAnchor - ang], 
+    FBS[[2]] + Sin[BRSectorAnchor - ang]}}, {Cos[
+    BRSectorAnchor - ang/2], Sin[BRSectorAnchor - ang/2]}]
+Half120BR = 
+  HalfPlane[{FBS, {FBS[[1]] + Cos[BRSectorAnchor], 
+     FBS[[2]] + Sin[BRSectorAnchor]}}, {Cos[BRSectorAnchor + ang/2], 
+    Sin[BRSectorAnchor + ang/2]}];
+grids[min_, max_] := 
+ Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}]
+Show[
+ ListDensityPlot[HeatMapang120BR, PlotLegends -> Automatic],
+ ListPlot[BRUEsignal2, GridLines -> grids, ImageSize -> Large, 
+  AspectRatio -> 1],
+ ListPlot[BRUEnoSig2, PlotStyle -> Green],
+ ListPlot[{FBS}, PlotStyle -> Red],
+ ListPlot[{Gridsize*(Position[ROIang120BR, Min[ROIang120BR]] - 1)}, 
+  PlotStyle -> Black],
+ RegionPlot[RegionIntersection[Half120BR, LeftP120BR], 
+  PlotRange -> {{0, 500}, {0, 500}}, PlotStyle -> {Blue, Opacity[0.2]}]
+ ]
+(**ang radian FBS Top Right**)
+ROIang120TR = {};
+(**ang=Pi/3;
+Half=HalfPlane[{FBS,{FBS[[1]]+Cos[3Pi/2-ang],FBS[[2]]-Sin[Pi/2-ang]}},\
+{0,-1}];
+LeftP=HalfPlane[{FBS,{FBS[[1]],FBS[[2]]-1}},{-1,0}];**)
+ScaleP = 100;
+Score = 0;
+Size = 500;
+Gridsize = Size/ScaleP;
+HeatMapang120TR = {};
+
+For[j = 1, j < ScaleP + 1,
+  AppendTo[ROIang120TR, {}];
+  j++;
+  ];
+For[j = 1, j < ScaleP + 1,
+  For[i = 1, i < ScaleP + 1,
+   AppendTo[ROIang120TR[[j]], Score];
+   AppendTo[
+    HeatMapang120TR, {(j - 1)*Gridsize, (i - 1)*Gridsize, Score}];
+   i++;
+   ];
+  j++;
+  ];
+For[j = 1, j < Length[TRUEsignal],
+  For[i = j + 1, i < Length[TRUEsignal] + 1,
+   a = TRUEsignal[[j]][[3]];
+   b = TRUEsignal[[i]][[3]];
+   If[a != b,
+    For[k = 1, k < ScaleP + 1,
+      For[h = 1, h < ScaleP + 1,
+       x = (k - 1)*Gridsize;
+       y = (h - 1)*Gridsize;
+       D1 = 
+        EuclideanDistance[{x, y}, {TRUEsignal[[j]][[1]], 
+          TRUEsignal[[j]][[2]]}];
+       D2 = 
+        EuclideanDistance[{x, y}, {TRUEsignal[[i]][[1]], 
+          TRUEsignal[[i]][[2]]}];
+       If[a > b && D1 > D2,
+        ROIang120TR[[k]][[h]] = ROIang120TR[[k]][[h]] + 1;
+        ];
+       If[a < b && D1 < D2,
+        ROIang120TR[[k]][[h]] = ROIang120TR[[k]][[h]] + 1;
+        ];
+       h++;
+       ];
+      k++;
+      ];
+    ];
+   i++;
+   ];
+  j++;
+  ];
+For[j = 1, j < ScaleP + 1,
+  For[i = 1, i < ScaleP + 1,
+   HeatMapang120TR[[i + ScaleP (j - 1)]][[3]] = ROIang120TR[[j]][[i]];
+   i++;
+   ];
+  j++;
+  ];
+M1s = Position[ROIang120TR, Min[ROIang120TR]][[1]][[1]];
+M2s = Position[ROIang120TR, Min[ROIang120TR]][[1]][[2]];
+
+ang = Pi/3;
+LeftP120TR = 
+ HalfPlane[{FBS, {FBS[[1]] + Cos[TRSectorAnchor - ang], 
+    FBS[[2]] + Sin[TRSectorAnchor - ang]}}, {Cos[
+    TRSectorAnchor - ang/2], Sin[TRSectorAnchor - ang/2]}]
+Half120TR = 
+  HalfPlane[{FBS, {FBS[[1]] + Cos[TRSectorAnchor], 
+     FBS[[2]] + Sin[TRSectorAnchor]}}, {Cos[TRSectorAnchor + ang/2], 
+    Sin[TRSectorAnchor + ang/2]}];
+grids[min_, max_] := 
+ Table[If[EvenQ[i], {i, Blue}, {i, Blue}], {i, 0, 500, 50}]
+Show[
+ ListDensityPlot[HeatMapang120TR, PlotLegends -> Automatic],
+ ListPlot[TRUEsignal2, GridLines -> grids, ImageSize -> Large, 
+  AspectRatio -> 1],
+ ListPlot[TRUEnoSig2, PlotStyle -> Green],
+ ListPlot[{FBS}, PlotStyle -> Red],
+ ListPlot[{Gridsize*(Position[ROIang120TR, Min[ROIang120TR]] - 1)}, 
+  PlotStyle -> Black],
+ RegionPlot[RegionIntersection[Half120TR, LeftP120TR], 
+  PlotRange -> {{0, 500}, {0, 500}}, PlotStyle -> {Blue, Opacity[0.2]}]
+ ]
+
+
+Export["Score120DegBotApproxR3", HeatMapang120BL, "CSV"];
+Export["SignalUE120DegBotApproxR3", BLUEsignal, "CSV"];
+Export["NoSignalUE120DegBotApproxR3", BLUEnoSig, "CSV"];
+
+Export["Score120DegRightApproxR3", HeatMapang120BR, "CSV"];
+Export["SignalUE120DegRightApproxR3", BRUEsignal, "CSV"];
+Export["NoSignalUE120DegRightApproxR3", BRUEnoSig, "CSV"];
+
+Export["Score120DegLeftApproxR3", HeatMapang120TR, "CSV"];
+Export["SignalUE120DegLeftApproxR3", TRUEsignal, "CSV"];
+Export["NoSignalUE120DegLeftApproxR3", TRUEnoSig, "CSV"];
+
+
+
+
