@@ -1,0 +1,10 @@
+SetDirectory[NotebookDirectory[]]
+TableAll = 
+  Import["localization no-building \
+propagation=ThreeLogDistancePropagationLossModel grid=500X500 \
+n(UE)=200 n(eNB+FBS)=5 lbs=46 fbs=48 seed=1 run=1.csv", "Dataset", 
+   "HeaderLines" -> 1];
+TableAllNoDup = DeleteDuplicates[TableAll];
+FBS04 = TableAllNoDup[Select[#Time == 0.400001 &]][All, {"X5", "Y5"}];
+FBS = {FBS04[[1]][[1]], FBS04[[1]][[2]]};
+Export["FBSlocR1", FBS, "CSV"];
