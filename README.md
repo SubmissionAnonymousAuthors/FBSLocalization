@@ -7,7 +7,7 @@ The files uploaded in this repository are the experiments for generating test da
 2) ``ExactLoc90degRandANONYM.txt``: txt file includes a code for analyzing test data obtained from ns-3 and needs to be run in Mathematica.
 3) ``ExactLoc120degRandANONYM.txt``: txt file includes a code for analyzing test data obtained from ns-3 and needs to be run in Mathematica.
 4) ``FBSloc.txt``: txt file includes a code for obtaining the location of FBS and needs to be run in Mathematica.
-5) ``ConvexhullScoringAnon.ipynb``: Jupyter Notebook file is used for obtaining predicted location of the of the FBS with the data from Mathematica.
+5) ``ConvexhullScoringAnon.ipynb``: Jupyter Notebook file is used for obtaining the predicted location of the FBS with the data from Mathematica.
 
 # ns-3 simulator
 For generating test data, we have used the ns-3 simulator. The ns-3 simulator can be downloaded from its [webpage](https://www.nsnam.org/docs/release/3.44/installation/html/index.html) and installed by following the official installation guide.
@@ -21,7 +21,7 @@ Copy or move the ``localization_3log1.cc`` file into this scratch directory. Cur
 
 This C++ file is responsible for generating synthetic test data. You can control the randomness of the generated datasets by adjusting the ``seed`` and run ``variables`` inside the main function. Changing these values alters the initial positions of UEs, BSs, and FBSs, allowing you to produce multiple distinct test datasets.
 
-## Running a ns-3 code
+## Running the ns-3 code
 Once ``localization_3log1.cc`` is placed in the scratch folder, follow these steps to run it:
 1) Open the terminal.
 2) Navigate to the ``ns-allinone-3.44`` (ns-3 project directory) using the cd command.
@@ -33,16 +33,16 @@ After running this command, a new output file (``localization no-building enviro
 ## Using the data from ns-3 simulation
 *ExactLoc90degRandANONYM* or *ExactLoc120degRandANONYM* are used for post-editing data obtained from ns-3 and run in Mathematica. *ExactLoc90degRandANONYM* considers 90&deg; antenna while *ExactLoc120degRandANONYM* considers 120&deg; antenna. With these codes, we 
 
-1) triangulate UE locations (files use the triangulation method, which requires at least 3 positive RSRP values from real BSs.)
-2) directional antenna for FBS
-3) give each location the half-plane score
+1) triangulate UE locations (files use the triangulation method, which requires at least 3 positive RSRP values from real BSs).
+2) randomly choose the direction of the directional antenna for FBS and edit the UEs' RSRP values from FBS to reflect the directional antenna.
+3) give each location the half-plane score.
 
 For each file, we get 3 different types of datasets:
 1) **Score90/120:** contains halfplane score of each point in the form (x,y,score).
 2) **SignalUE90/120:** contains triangulated locations of each UE that obtains positive RSRP from the directional FBS, as well as the RSRP values from the FBS in the form (x,y,RSRP).
-3) **NoSignalUE90/120:** contains triangulated locations of each UE which does not obtain a positive RSRP from the directional FBS as well as the RSRP values from the FBS in the form (x,y,0)
+3) **NoSignalUE90/120:** contains triangulated locations of each UE that does not obtain a positive RSRP from the directional FBS, as well as the RSRP values from the FBS in the form (x,y,0).
 
 Then, we use *FBSloc* to obtain the location of the FBS at time 0.400001 in the form (x,y).
-After obtaining the data from Mathematica files, run the python file ConvexhullScoringAnon  to obtain the predicted location of the FBS.
+After obtaining the data from Mathematica files, run the Python file ConvexhullScoringAnon to obtain the predicted location of the FBS.
 
 **Note:** This README section does not explain the purpose or function of each step. It is intended solely as a quick reference for running the ns-3 C++ code to generate test data.. 
