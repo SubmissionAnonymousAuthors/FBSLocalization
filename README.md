@@ -1,6 +1,6 @@
 # Experiments for Localization of FBS
 
-The files uploaded in this repository are the experiments for generating test data for the setup introduced in the paper with the title "Localization of Fake Base Stations with Directional Antennas", anonymously submitted to the 30th Nordic Conference on Secure IT Systems (NordSec) 2025.
+The files uploaded in this repository are the experiments for generating test data for the setup introduced in the paper with the title "Localization of Fake Base Stations with Directional Antennas", anonymously submitted to the 27th IEEE International Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM).
 
 # Files in the repository
 1) ``localization_3log1.cc``: C++ file is responsible for generating synthetic test data.
@@ -17,7 +17,7 @@ A quicker setup can be found in the [Quick Start guide](https://www.nsnam.org/do
 ## Generating test data
 
 Once ns-3 is installed and built, locate the scratch directory inside ``ns-3.44`` (which itself is inside ``ns-allinone-3.44``).
-Copy or move the ``localization_3log1.cc`` file into this scratch directory. Currently there is new version of ns-3 (ns-3.45), however please download the ns-3.44 since this version is what we used to generate test data.
+Copy or move the ``localization_3log1.cc`` file into this scratch directory. 
 
 This C++ file is responsible for generating synthetic test data. You can control the randomness of the generated datasets by adjusting the ``seed`` and run ``variables`` inside the main function. Changing these values alters the initial positions of UEs, BSs, and FBSs, allowing you to produce multiple distinct test datasets.
 
