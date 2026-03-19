@@ -1,6 +1,6 @@
 # Experiments for Localization of FBS
 
-The files uploaded in this repository are the experiments for generating test data for the setup introduced in the paper with the title "Localization of Fake Base Stations with Directional Antennas", anonymously submitted to the 27th IEEE International Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM).
+The files uploaded in this repository are the experiments for generating test data for the setup introduced in the paper with the title "Finding Fake Base Stations with Directional Antenna Using Measurement Reports", anonymously submitted to the 23rd International Conference on Security and Cryptography (SECRYPT) 2026.
 
 # Files in the repository
 1) ``localization_3log1.cc``: C++ file is responsible for generating synthetic test data.
